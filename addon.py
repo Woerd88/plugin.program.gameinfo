@@ -35,9 +35,15 @@ def checkFile(filename):
 def checkParser(parser):
 
     info = GameInfo()
+    info.game_title = ""
+    info.game_system = "Unknown"
+    info.game_maker = ""
+    info.game_serial = ""
 
     if parser.description == "Nintendo DS game file":
         info = FillNintendoDS(parser)
+    elif parser.description == "ISO 9660 file system":
+        info = checkISO9660file(parser)
     else:
         info.game_system = parser.description
 
@@ -47,6 +53,57 @@ def checkParser(parser):
     result += "Serial:" + "\t" + info.game_serial + "\n"
 
     return result
+
+def checkISO9660file(parser):
+
+    #first check the system areas for
+    # Sega Dreamcast
+    # Sega Saturn CD
+
+    #
+    return checkPlaystation(parser)
+
+def checkPlaystation(parser):
+
+    #loop over all file to check for:
+    #SYSTEM.CNF = PS1 and PS2 images
+    #PARAM.SFO  = PSP and PS3 images
+
+    info = GameInfo()
+
+    i = 0
+    while True:
+
+        try:
+            objectname = "directory_records[%d]" % i
+            entry = parser[objectname]
+
+            file_name = entry["file_identifier"].value
+
+            #Check PS1 / PS2
+            if file_name.startswith("SYSTEM.CNF"):
+
+                location = entry["extent_lpath"].value
+                size = entry["extent_size_l"].value
+                #Size should be exact 69 bytes?
+                data = parser.stream.readBytes((location * parser.sector_size + parser.sector_header_size) * 8, size)
+                #PS1 == BOOT = cdrom:\SLUS_009.22;1
+                if data.startswith("BOOT = cdrom:"):
+                    info.game_serial = data[14:25]
+                    info.game_system = "Playstaion 1"
+                    break
+
+                #PS2 == BOOT2 = cdrom0:\SLES_534.94;1
+                if data.startswith("BOOT2 = cdrom0:"):
+                    info.game_serial = data[16:27]
+                    info.game_system = "Playstaion 2"
+                    break
+
+            i += 1
+        except Exception, e:
+            break
+
+    return info
 
 def printFile(parser):
 

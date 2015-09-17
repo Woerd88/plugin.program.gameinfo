@@ -1,4 +1,4 @@
-﻿import xbmcaddon
+import xbmcaddon
 import xbmcgui
 import hachoir_core
 

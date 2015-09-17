@@ -1,3 +1,9 @@
-1.0.0 Initial Release
+v1.0.1
+2015-09-16
+hachoir is now in it's own addon:
+script.module.hachoir
+
+v1.0.0
+2015-06-08
 hachoir core:   v1.3.4
 hachoir parser: v1.3.5
